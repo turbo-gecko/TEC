@@ -1,3 +1,6 @@
 
 *.pui
 *.prj
+*.lst
+*.obj
+*.bak
