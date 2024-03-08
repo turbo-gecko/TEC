@@ -1,0 +1,47 @@
+; Move Segment With the Keyboard with Auto move
+; '+' - Left, '4' - Right
+
+	ORG	4000H
+START:
+	LD	A,01H
+	OUT	(02),A
+	OUT	(01),A
+	LD	B,A
+LOOP1:
+	LD	C,10H
+	RST	10H
+	JR	Z,LEFT        ; key Pressed
+	LD	A,E           ; Previous if a invalid
+LEFT:
+	CP	10H
+	JR	NZ,RIGHT
+	LD	E,A
+	LD	HL,4000H      ; Time delay of ~100mS
+	LD	C,21H
+	RST	10H
+	RLC	B
+	JR	MOVE
+RIGHT:
+	CP	04H
+	JR	NZ,LOOP1
+	LD	E,A
+	LD	HL,4000H      ; Time delay of ~100mS
+	LD	C,21H
+	RST	10H
+	RRC	B
+MOVE:
+	LD	A,B
+	OUT	(01),A
+	CALL	DELAY
+	JR	LOOP1
+DELAY:
+	PUSH	BC
+	LD	B,55H
+D1:
+	LD	C,0FFH
+D2:
+	DEC	C
+	JR	NZ,D2
+	DJNZ	D1
+	POP	BC
+	RET

@@ -1,0 +1,70 @@
+; Spin LED Around an Segment
+
+	ORG	1000H
+SEG:
+	DB	00,00,00,00,00,00
+
+	ORG	4000H
+START:
+	LD	DE,SEG
+	LD	IX,SEG
+	LD	B,00H
+LOOP1:
+	PUSH	DE
+	PUSH	BC
+	LD	C,0AH
+	RST	10H
+	POP	BC
+	POP	DE
+	INC	B
+	RST	30H
+	LD	(IX+0),B
+	LD	(IX+1),B
+	LD	(IX+2),B
+	LD	(IX+3),B
+	LD	(IX+4),B
+	LD	(IX+5),B
+	CALL	DELAY
+	JR	LOOP1
+DELAY:
+	PUSH	DE
+	PUSH	BC
+	PUSH	AF
+	LD	HL,400H      ; Time delay of ~10mS
+	LD	C,21H
+	RST	10H
+	POP	AF
+	POP	BC
+	POP	DE
+	RET
+
+
+
+
+
+
+
+
+
+
+
+;START:
+;	LD	A,3FH
+;	OUT	(01),A
+;	XOR	B
+;LOOP1:
+;	LD	A,B
+;	OUT	(02),A
+;	INC	B
+;	CALL	DELAY
+;	JR	LOOP1
+;
+;DELAY:
+;	PUSH	BC
+;	PUSH	AF
+;	LD	HL,2000H      ; Time delay of ~100mS
+;	LD	C,21H
+;	RST	10H
+;	POP	AF
+;	POP	BC
+;	RET

@@ -1,0 +1,28 @@
+                              ;  Sequentially light every segment combination (and decimal point)
+                              ;  on all seven segment displays in a forever repeating pattern.
+                              ;  Press the reset button to stop the program
+
+            ORG 4000H         ;  Start address of the program
+START:
+            LD A,3FH          ;  3FH = 0011 1111 binary where each 1 represents one of the seven
+                              ;  segment displays
+            OUT (01),A        ;  Enable the seven segment displays
+            LD B,00H          ;  clear the B register. B will be used as a counter
+LOOP1:
+            LD A,B            ;  Load the accumulator with the the segments to light
+            OUT (02),A
+            INC B
+            CALL DELAY
+            JR LOOP1
+
+DELAY:
+            PUSH BC
+            LD B,20H
+D1:
+            LD C,0FFH
+D2:
+            DEC C
+            JR NZ,D2
+            DJNZ D1
+            POP BC
+            RET
