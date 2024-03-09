@@ -6,8 +6,10 @@ The poeple of Biddlelonia are about to make their first landing on their moon wi
 
 The throttle is adjustable from fully closed 00% to wide open 99%. Why not 100%? Well there was a problem when testing the first lander where the turbo encabultor went into uncontrolled oscillations resulting in excessive magnetic reductance that led to a rapid unscheduled disassembly of the lunar lander! To prevent such a disaster from happening a second time, the throttle is controlled by the lunar lander computer to only accept throttle values between 00% and 99%.
 
-Keep an eye on your height, velocity and fuel levels. These are displayed on your main computer screen.
-Your current fuel level and throttle position is indicated on the computers seven segment read-outs.
+Keep an eye on your height and velocity. These are displayed on your main computer screen.
+
+Your current fuel level and throttle position is indicated on the computers seven segment read-outs. Fuel is the 3 digits on the left, throttle is the 2 digits on the right. The fuel display will flash when you run out of fuel!
+
 Try to have your throttle position just above the lunar surface at such a point that you settle on the surface with no downward velocity. The lander can sustain landing with a small amount of downward velocity that will result in a bumpy landing. Too much however, and it's 'game over man!'
 
 ## Source files ##
