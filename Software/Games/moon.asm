@@ -11,9 +11,6 @@
 ;#define     DUMP_EN
 
 ; Enables output of stats and debug info to the serial port
-; Using the serial port disables the use of the disco LEDs as they
-; share a common control line which results in garbage being sent to
-; the serial port whilst the disco LED's are operating.
 ;#define     SERIAL_OUT_EN
 
 ; Enables the use of the expansion RAM
