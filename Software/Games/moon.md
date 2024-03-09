@@ -24,7 +24,8 @@ Near the top of moon.asm, there are 2 #defines. SERIAL_OUT_EN enables the stats 
 The main starting parameters are listed as constants that can be adjusted to change the games initial state.
 
 ## To Do ##
-  - Display 'how to play' instructions.
+  - Display 'how to play' instructions. (Done)
+  - Add 'Abort' and 'Replay'. (Done)
   - Add sound effects.
   - Add fuel level bar graph
   - Add bar graphs on the LCD for height and velocity.
