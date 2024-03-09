@@ -55,17 +55,19 @@ INTRO_2_M   .db     "  Press 00 - 99 to  ",0
 INTRO_3_M   .db     " adjust the descent ",0
 INTRO_4_M   .db     " Press <A> to abort ",0
 INTRO_5_M   .db     " during the descent ",0
-INTRO_6_M   .db     " Press <B> to replay",0
+INTRO_6_M   .db     "Press <B>  to replay",0
 
 NO_FUEL_M   .db     " <EMPTY>",0
 
 BURN_T      .db     "Fuel Burn ",0
+DOWN_T      .db     "  [DOWN]",0
 FUEL_T      .db     "Fuel ",0
 HEIGHT_T    .db     "Height ",0
 THRTL_T     .db     "Throttle (%) ",0
-TIME_T      .db     " T ",0
-VEL_T       .db     "Vel. ",0
-VEL1_T      .db     "Vel1. ",0
+TIME_T      .db     " - T ",0
+UP_T        .db     "  [ UP ]",0
+VEL_T       .db     "Vel.   ",0
+VEL1_T      .db     "Vel1.  ",0
 ZERO_T      .db     "00000",0
 
 #ifdef      SERIAL_OUT_EN
@@ -789,29 +791,13 @@ STATS:      call    CLEAR_LCD       ; Clear the LCD
             ld      c,15
             rst     10h
 
-            ld      hl,FUEL_T       ; Display the amount of the fuel left
-            ld      c,13
-            rst     10h
-
-            ld      hl,(FUEL)
-            call    HL_TO_LCD
-
-            ld      hl,(FUEL)       ; Check for no fuel left
-            ld      bc,0
-            sbc     hl,bc
-            jr      nz,STATS_1
-
-            ld      hl,NO_FUEL_M    ; Display the no fuel warning
-            ld      c,13
-            rst     10h
-
-STATS_1:    ld      a,LCD_3         ; Move cursor to the beginning of LCD line 3
-            ld      b,a
-            ld      c,15
-            rst     10h
-
             ld      hl,VEL_T        ; Display the current velocity
             ld      c,13
+            rst     10h
+
+            ld      a,LCD_2 + 12    ; Move cursor to direction pos. on LCD line 2
+            ld      b,a
+            ld      c,15
             rst     10h
 
             ld      hl,(VEL1)
@@ -822,18 +808,25 @@ STATS_1:    ld      a,LCD_3         ; Move cursor to the beginning of LCD line 3
             sbc     hl,de
             ld      (TEMP_D),hl
 
-            ld      a,'+'
-            ld      c,14            ; Send ASCII character to the LCD
+            ld      hl,UP_T         ; Display the velocity direction
+            ld      c,13
             rst     10h
 
-            ld      hl,(TEMP_D)
             jr      STATS_3
 
-STATS_2:    ld      a,'-'
-            ld      c,14            ; Send ASCII character to the LCD
+STATS_2:    ld      (TEMP_D),hl
+
+            ld      hl,DOWN_T       ; Display the velocity direction
+            ld      c,13
             rst     10h
 
-STATS_3:    call    HL_TO_LCD
+STATS_3:    ld      a,LCD_2 + 7     ; Move cursor to velocity pos. on LCD line 2
+            ld      b,a
+            ld      c,15
+            rst     10h
+            
+            ld      hl,(TEMP_D)
+            call    HL_TO_LCD
 
             ld      a,LCD_4         ; Move cursor to the beginning of LCD line 4
             ld      b,a
