@@ -17,7 +17,7 @@
 ;#define     SERIAL_OUT_EN
 
 ; Enables the use of the expansion RAM
-#define EX_RAM_EN
+;#define EX_RAM_EN
 
 ;---------------------------------------------------------------------
 ; Constants
@@ -46,12 +46,17 @@ FUEL_FLASH  .equ    0200h
 ANY_KEY_P   .db     "   Press any key    ",0
 THRTL_P     .db     "Throttle 00-99 ? ",0
 
+ABORT_M     .db     "* Aborted landing! *",0
 BUMPY_M     .db     "** Bumpy landing! **",0
 CRASH_M     .db     "Crashed! - All dead ",0
 GOOD_M      .db     "** Great landing! **",0
 INTRO_1_M   .db     " -= Moon Lander! =- ",0
 INTRO_2_M   .db     "  Press 00 - 99 to  ",0
 INTRO_3_M   .db     " adjust the descent ",0
+INTRO_4_M   .db     " Press <A> to abort ",0
+INTRO_5_M   .db     " during the descent ",0
+INTRO_6_M   .db     " Press <B> to replay",0
+
 NO_FUEL_M   .db     " <EMPTY>",0
 
 BURN_T      .db     "Fuel Burn ",0
@@ -148,6 +153,41 @@ INTRO:      ld      hl,INTRO_1_M    ; Display the intro message
 
             call    KEY_WAIT        ; Wait for a key press
 
+            call    CLEAR_LCD       ; Clear the LCD
+
+            ld      hl,INTRO_4_M    ; Continue the intro message
+            ld      c,13
+            rst     10h
+
+            ld      a,LCD_2         ; Move cursor to LCD line 2
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      hl,INTRO_5_M
+            ld      c,13
+            rst     10h
+
+            ld      a,LCD_3         ; Move cursor to LCD line 3
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      hl,INTRO_6_M
+            ld      c,13
+            rst     10h
+
+            ld      a,LCD_4         ; Move cursor to LCD line 4...
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      hl,ANY_KEY_P    ; ...and display the wait message
+            ld      c,13
+            rst     10h
+
+            call    KEY_WAIT        ; Wait for a key press
+
 MAIN:       call    STATS           ; Display the current stats on the LCD
 
 #ifdef SERIAL_OUT_EN
@@ -207,7 +247,26 @@ GOOD:       ld      hl,GOOD_M       ; Nailed it!
 
 END:        call    SCAN_7_SEG      ; Leave the landing message on the LCD. Wait for a key press
 
-            rst     00h             ; All done!
+            ld      c,3             ; Beep
+            rst     10h
+
+            ld      hl,KEY_DELAY    ; Add short delay to debounce key press
+            ld      c,33
+            rst     10h
+
+            call    CLEAR_LCD
+            
+            ld      hl,INTRO_6_M    ; Prompt for play again
+            ld      c,13
+            rst     10h
+            
+            call    SCAN_7_SEG
+            cp      11
+            jr      nz,END_1        ; Check for the 'Replay' key B
+
+            jp      START           ; And go again      
+
+END_1:      rst     00h             ; All done!
 
 ;---------------------------------------------------------------------
 ; External modules/subroutines
@@ -366,7 +425,8 @@ GET_THRTL:  ld      a,LCD_4         ; Move cursor to the beginning of LCD line 4
             rst     10h
 
 GT_1:       call    SCAN_7_SEG      ; Check for key press
-            cp      10
+            cp      10              ; Check for a valid key press
+            jr      z,GT_5          ; Check for the 'Abort' key A
             jr      c,GT_2
             jr      GT_1
 
@@ -388,7 +448,8 @@ GT_2:       ld      l,a
 
 GT_3:       call    SCAN_7_SEG      ; Check for key press
             ld      b,a             ; Store key value returned
-            cp      10
+            cp      10              ; Check for a valid key press
+            jr      z,GT_5          ; Check for the 'Abort' key A
             jr      c,GT_4
             jr      GT_3
 
@@ -409,6 +470,43 @@ GT_4:       push    bc
             rst     10h
 
             ret
+
+GT_5:       ld	    h,0FFh          ; Abort sound!
+	        ld	    b,01h
+
+GT_6:   	inc	    b
+	        ld      a,80h
+	        out 	(01),a
+	        call	GT_8
+	        xor     a
+	        out     (01),a
+	        call	GT_8
+
+	        dec 	h
+	        jr  	nz,GT_6
+
+GT_7:	    call    CLEAR_LCD
+
+            ld      hl,ABORT_M      ; Display the abort message
+            ld      c,13
+            rst     10h
+
+            ld      a,LCD_4         ; Move cursor to LCD line 4...
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      hl,ANY_KEY_P    ; ...and display the wait message
+            ld      c,13
+            rst     10h
+
+            jp      END
+
+GT_8:       ld 	    c,b
+
+GT_9:   	dec     c
+	        jr  	nz,GT_9
+	        ret
 
 ;---------------------------------------------------------------------
 ; Convert the 16 bit value in HL to it's ASCII equivalent
