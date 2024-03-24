@@ -445,7 +445,8 @@ SER_TIME:   ld      bc,RTC_API_2    ; Get the current time
 ;---------------------------------------------------------------------
 TEST_RUN:   call    TEST_1
             call    TEST_2
-            call    TEST_3            
+            call    TEST_3
+            call    TEST_99
             
             ld      hl,S_LINE       ; Send line break
             call    SER_STR
@@ -680,6 +681,89 @@ TEST_3:     ld      hl,3            ; Send out test header info to serial port
             call    SER_CRLF
             
             ld      hl,2359h
+            ld      d,59h
+
+            ld      bc,RTC_API_3    ; Set the time
+            rst     10h
+
+            call    SER_TIME        ; Get time and send to serial port
+            call    SER_MODE        ; Get 12/24 hour mode and send to the serial port
+
+            ret
+
+;---------------------------------------------------------------------
+; Test 99
+;---------------------------------------------------------------------
+TEST_99:    ld      hl,99           ; Send out test header info to serial port
+            ld      (T_NUMBER),hl
+            
+            ld      hl,T99_NAME
+            ld      (T_NAME),hl
+            
+            ld      hl,T99_DESC
+            ld      (T_DESC),hl
+            
+            call    TEST_BEGIN
+ 
+            ld      hl,T2_MSG_1     ; Send 12 hour mode msg to the serial port
+            call    SER_STR
+            call    SER_CRLF
+            
+            ld      bc,RTC_API_9   ; Set the RTC to 12 hour mode
+            rst     10h
+
+            ld      hl,T2_MSG_2     ; Setting the time to 00:00:01 msg
+            call    SER_STR
+            call    SER_CRLF
+            
+            ld      hl,0000h
+            res     5,h             ; Reset bit 5 to indicate AM
+            set     7,h             ; Set bit 7 to make it display
+            ld      d,01h
+
+            ld      bc,RTC_API_3    ; Set the time
+            rst     10h
+
+            call    SER_TIME        ; Get time and send to serial port
+            call    SER_MODE        ; Get 12/24 hour mode and send to the serial port
+
+            ld      hl,T2_MSG_3     ; Setting the time to 11:59:59 msg
+            call    SER_STR
+            call    SER_CRLF
+            
+            ld      hl,1159h
+            res     5,h             ; Reset bit 5 to indicate AM
+            set     7,h             ; Set bit 7 to make it display
+            ld      d,59h
+
+            ld      bc,RTC_API_3    ; Set the time
+            rst     10h
+
+            call    SER_TIME        ; Get time and send to serial port
+            call    SER_MODE        ; Get 12/24 hour mode and send to the serial port
+
+            ld      hl,T2_MSG_4     ; Setting the time to 12:00:00 pm msg
+            call    SER_STR
+            call    SER_CRLF
+            
+            ld      hl,1200h
+            set     5,h             ; Set bit 5 to indicate PM
+            set     7,h             ; Set bit 7 to make it display
+            ld      d,00h
+
+            ld      bc,RTC_API_3    ; Set the time
+            rst     10h
+
+            call    SER_TIME        ; Get time and send to serial port
+            call    SER_MODE        ; Get 12/24 hour mode and send to the serial port
+
+            ld      hl,T2_MSG_5     ; Setting the time to 11:59:59 pm msg
+            call    SER_STR
+            call    SER_CRLF
+            
+            ld      hl,2359h
+            set     5,h             ; Set bit 5 to indicate PM
+            set     7,h             ; Set bit 7 to make it display
             ld      d,59h
 
             ld      bc,RTC_API_3    ; Set the time

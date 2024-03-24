@@ -4,3 +4,5 @@
 *.lst
 *.obj
 *.bak
+Software/Utils/lcd.hex
+Software/Utils/rtc-test-messages.hex
