@@ -27,8 +27,10 @@ C_THRTL     .equ    0
 C_TIME      .equ    0
 C_VEL       .equ    50
 
+LED_PORT    .equ    0fbh
+
 KEY_DELAY   .equ    6000h
-FUEL_FLASH  .equ    0200h
+TIME_DELAY  .equ    0200h
 
 ;---------------------------------------------------------------------
 ; Data/Variables
@@ -90,6 +92,8 @@ TIME        .db     0
 VEL         .dw     50
 VEL1        .dw     0
 V_AVG       .dw     0
+
+BAR_GRAPH   .db     0ffh
 
 TEMP_D      .dw     0
 TEMP_W      .db     "00000",0
@@ -198,12 +202,11 @@ LANDED:     ld      hl,0            ; Set the height to the moons surface
             call    STATS           ; Update the stats on the LCD
 
             ld      a,(VEL)         ; If we have 0 velocity we have nailed it!
-            cp      0
+            or      a
             jr      z,GOOD
 
-            sub     5               ; If we have a velocity of 4 or less, it's a bumpy landing
-            bit     7,a
-            jr      nz,BUMPY
+            cp      5               ; If we have a velocity of 4 or less, it's a bumpy landing
+            jr      c,BUMPY
 
             ld      hl,CRASH_M      ; Otherwise we have had a rapid unscheduled disassembly
             call    PRINT_R4
@@ -230,8 +233,14 @@ GOOD:       ld      hl,GOOD_M       ; Nailed it!
             ld      c,35
             rst     10h
 
-END:        call    SCAN_7_SEG      ; Leave the landing message on the LCD. Wait for a key press
+END:        ld      a,(BAR_GRAPH)
+            out     (LED_PORT),a
+            
+            call    SCAN_7_SEG      ; Leave the landing message on the LCD. Wait for a key press
 
+            cp      0ffh
+            jr      z,END
+            
             ld      c,3             ; Beep
             rst     10h
 
@@ -245,13 +254,20 @@ END:        call    SCAN_7_SEG      ; Leave the landing message on the LCD. Wait
             ld      c,13
             rst     10h
             
+END_1:      ld      a,(BAR_GRAPH)
+            out     (LED_PORT),a
+            
             call    SCAN_7_SEG
+            cp      0ffh
+            jr      z,END_1
             cp      11
-            jr      nz,END_1        ; Check for the 'Replay' key B
-
+            jr      nz,END_2        ; Check for the 'Replay' key B
             jp      START           ; And go again      
 
-END_1:      rst     00h             ; All done!
+END_2:      ld      a,00h
+            out     (LED_PORT),a
+            
+            rst     00h             ; All done!
 
 ;---------------------------------------------------------------------
 ; External modules/subroutines
@@ -402,11 +418,16 @@ GET_THRTL:  ld      hl,THRTL_P      ; Display the prompt for the throttle %
             ld      b,a
             ld      c,15
             rst     10h
-
+            
+            ld      a,(BAR_GRAPH)
+            out     (LED_PORT),a
+            
 GT_1:       call    SCAN_7_SEG      ; Check for key press
             cp      10              ; Check for a valid key press
             jr      z,GT_5          ; Check for the 'Abort' key A
             jr      c,GT_2
+            cp      0ffh            ; Check for a timeout
+            jr      z,GT_5
             jr      GT_1
 
 GT_2:       ld      l,a
@@ -419,7 +440,7 @@ GT_2:       ld      l,a
             rlc     a               ; x8
             add     a,l             ; +key
             add     a,l             ; +key
-            ld      (THRTL),a       ; Store first digit
+            ld      (TEMP_D),a      ; Store first digit
             
             ld      hl,KEY_DELAY    ; Add short delay to debounce key press
             ld      c,33
@@ -428,43 +449,50 @@ GT_2:       ld      l,a
 GT_3:       call    SCAN_7_SEG      ; Check for key press
             ld      b,a             ; Store key value returned
             cp      10              ; Check for a valid key press
-            jr      z,GT_5          ; Check for the 'Abort' key A
+            jr      z,GT_6          ; Check for the 'Abort' key A
             jr      c,GT_4
             jr      GT_3
 
-GT_4:       push    bc
+GT_4:       cp      0ffh            ; Check for a timeout
+            jr      z,GT_5
+            
+            ld      a,(TEMP_D)      ; Get first digit
+            add     a,b
+            ld      (THRTL),a
+            
+GT_5:       ld      l,a
+            call    L_TO_LCD
+
+            push    bc
             ld      l,a
             ld      c,3             ; Beep
             rst     10h
-
             pop     bc
-            ld      a,(THRTL)       ; Get first digit
-            add     a,b
-            ld      (THRTL),a
-            ld      l,a
-            call    L_TO_LCD
-
+            
             ld      hl,KEY_DELAY    ; Add short delay to debounce key press
             ld      c,33
             rst     10h
+            
+            ld      a,0ffh
+            ld      (BAR_GRAPH),a
 
             ret
 
-GT_5:       ld	    h,0FFh          ; Abort sound!
+GT_6:       ld	    h,0FFh          ; Abort sound!
 	        ld	    b,01h
 
-GT_6:   	inc	    b
+GT_7:   	inc	    b
 	        ld      a,80h
 	        out 	(01),a
-	        call	GT_8
+	        call	GT_9
 	        xor     a
 	        out     (01),a
-	        call	GT_8
+	        call	GT_9
 
 	        dec 	h
-	        jr  	nz,GT_6
+	        jr  	nz,GT_8
 
-GT_7:	    call    CLEAR_LCD
+GT_8:	    call    CLEAR_LCD
 
             ld      hl,ABORT_M      ; Display the abort message
             ld      c,13
@@ -481,10 +509,10 @@ GT_7:	    call    CLEAR_LCD
 
             jp      END
 
-GT_8:       ld 	    c,b
+GT_9:       ld 	    c,b
 
-GT_9:   	dec     c
-	        jr  	nz,GT_9
+GT_10:   	dec     c
+	        jr  	nz,GT_10
 	        ret
 
 ;---------------------------------------------------------------------
@@ -583,16 +611,10 @@ SCAN_7_SEG: ld      hl,(FUEL)
             rst     10h
             ld      (TEMP_7_SEG + 5),a
             
-            ld      hl,FUEL_FLASH
+            ld      hl,TIME_DELAY
             ld      (TIMER_1),hl
 
-S7S_1:
-            ld      hl,(FUEL)           ; Check to see if there is still fuel
-            ld      bc,0
-            sbc     hl,bc
-            jr      nz,S7S_2
-
-            ld      hl,(TIMER_1)        ; Flash the display if no fuel
+S7S_1:      ld      hl,(TIMER_1)        ; Check timer
             dec     hl
             ld      (TIMER_1),hl
             ld      a,h
@@ -608,14 +630,32 @@ S7S_2:      ld      de,TEMP_7_SEG
             jr      nz,S7S_1
             ret
 
-S7S_3:      ld      hl,FUEL_FLASH       ; Timer has expired so reset...
+S7S_3:      ld      a,(BAR_GRAPH)
+            sla     a
+            out     (LED_PORT),a
+            ld      (BAR_GRAPH),a
+            
+            cp      00h
+            jr      nz,S7S_4
+            ld      a,0ffh
+            ld      (BAR_GRAPH),a
+            
+            ret
+            
+S7S_4:      ld      hl,TIME_DELAY       ; Timer has expired so reset...
             ld      (TIMER_1),hl
+
+            ld      hl,(FUEL)           ; Check to see if there is still fuel
+            ld      bc,0
+            sbc     hl,bc
+            jr      nz,S7S_2
 
             ld      a,(TEMP_7_SEG)      ; ...and toggle between 000 and blank display
             cp      0
-            jr      z,SCAN_7_SEG
+            jr      nz,S7S_5
+            jp      SCAN_7_SEG
 
-            ld      a,' '
+S7S_5:      ld      a,' '
             ld      c,6
             rst     10h
             ld      (TEMP_7_SEG),a
