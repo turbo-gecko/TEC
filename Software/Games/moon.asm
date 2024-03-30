@@ -14,7 +14,7 @@
 ;#define     SERIAL_OUT_EN
 
 ; Enables the use of the expansion RAM
-;#define EX_RAM_EN
+;#define     EX_RAM_EN
 
 ;---------------------------------------------------------------------
 ; Constants
