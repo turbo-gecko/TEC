@@ -69,7 +69,7 @@ HTA_2:      inc		a
 ; Destroys:
 ;   A, BC, HL
 ;---------------------------------------------------------------------
-L_TO_ASC:   ld		h,0             ; Convert the 8 bit value in L to it's ASCII equivalent
+L_TO_LCD:   ld		h,0             ; Convert the 8 bit value in L to it's ASCII equivalent
             ld		bc,-100
             call	LTA_1
             ld		c,-10

@@ -69,7 +69,7 @@ HTA_2:      inc		a
 ; Destroys:
 ;   A, BC, HL
 ;---------------------------------------------------------------------
-L_TO_ASC:   ld		h,0             ; Convert the 8 bit value in L to it's ASCII equivalent
+L_TO_LCD:   ld		h,0             ; Convert the 8 bit value in L to it's ASCII equivalent
             ld		bc,-100
             call	LTA_1
             ld		c,-10
@@ -86,3 +86,126 @@ LTA_2:      inc		a
             rst		10h
             ret
 
+;---------------------------------------------------------------------
+; Displays a message at Row 1
+;
+; Inputs:
+;   HL  - Contains address of the message to print
+; Updates:
+;   None
+; Destroys:
+;   A, BC, HL
+;---------------------------------------------------------------------
+PRINT_R1:   ld      a,LCD_1         ; Move cursor to LCD line 1...
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      c,13            ; ...and display the message
+            rst     10h
+
+            ret
+
+;---------------------------------------------------------------------
+; Displays a message at Row 2
+;
+; Inputs:
+;   HL  - Contains address of the message to print
+; Updates:
+;   None
+; Destroys:
+;   A, BC, HL
+;---------------------------------------------------------------------
+PRINT_R2:   ld      a,LCD_2         ; Move cursor to LCD line 2...
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      c,13            ; ...and display the message
+            rst     10h
+
+            ret
+
+;---------------------------------------------------------------------
+; Displays a message at Row 3
+;
+; Inputs:
+;   HL  - Contains address of the message to print
+; Updates:
+;   None
+; Destroys:
+;   A, BC, HL
+;---------------------------------------------------------------------
+PRINT_R3:   ld      a,LCD_3         ; Move cursor to LCD line 3...
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      c,13            ; ...and display the message
+            rst     10h
+
+            ret
+
+;---------------------------------------------------------------------
+; Displays a message at Row 4
+;
+; Inputs:
+;   HL  - Contains address of the message to print
+; Updates:
+;   None
+; Destroys:
+;   A, BC, HL
+;---------------------------------------------------------------------
+PRINT_R4:   ld      a,LCD_4         ; Move cursor to LCD line 4...
+            ld      b,a
+            ld      c,15
+            rst     10h
+
+            ld      c,13            ; ...and display the message
+            rst     10h
+
+            ret
+
+;---------------------------------------------------------------------
+; Displays a message at the specific row and column
+;
+; Inputs:
+;   BC  - B = row, C = column
+;   HL  - Contains address of the message to print
+; Updates:
+;   None
+; Destroys:
+;   A, BC, HL
+;---------------------------------------------------------------------
+PRINT_AT:   ld      a,b             ; Determine the row
+            cp      1
+            jr      z,PRINT_AT_1
+            cp      2
+            jr      z,PRINT_AT_2
+            cp      3
+            jr      z,PRINT_AT_3
+            cp      4
+            jr      z,PRINT_AT_4
+            ret                     ; Invalid row so return
+            
+PRINT_AT_1: ld      a,LCD_1         ; Calculate the row
+            jr      PRINT_AT_5
+            
+PRINT_AT_2: ld      a,LCD_2
+            jr      PRINT_AT_5
+            
+PRINT_AT_3: ld      a,LCD_3
+            jr      PRINT_AT_5
+            
+PRINT_AT_4: ld      a,LCD_4
+            jr      PRINT_AT_5
+            
+PRINT_AT_5: add     a,c             ; Add the column
+            ld      b,a             ; Display the message
+            ld      c,15
+            rst     10h
+
+            ld      c,13            
+            rst     10h
+
+            ret

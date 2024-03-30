@@ -1,7 +1,7 @@
 ;---------------------------------------------------------------------
 ; Moon Lander
 ;
-; 2nd March 2024
+; 30th March 2024
 ;---------------------------------------------------------------------
 
 ;---------------------------------------------------------------------
@@ -119,36 +119,18 @@ START:      call    CLEAR_LCD       ; Clear the LCD
             ld      (VEL1),hl
             ld      (V_AVG),hl
 
-INTRO:      ld      hl,INTRO_1_M    ; Display the intro message
+INTRO:      ld      hl,INTRO_1_M    ; Display the intro messages
             ld      c,13
-            rst     10h
-
-            ld      a,LCD_2         ; Move cursor to LCD line 2
-            ld      b,a
-            ld      c,15
             rst     10h
 
             ld      hl,INTRO_2_M
-            ld      c,13
-            rst     10h
-
-            ld      a,LCD_3         ; Move cursor to LCD line 3
-            ld      b,a
-            ld      c,15
-            rst     10h
+            call    PRINT_R2
 
             ld      hl,INTRO_3_M
-            ld      c,13
-            rst     10h
+            call    PRINT_R3
 
-            ld      a,LCD_4         ; Move cursor to LCD line 4...
-            ld      b,a
-            ld      c,15
-            rst     10h
-
-            ld      hl,ANY_KEY_P    ; ...and display the wait message
-            ld      c,13
-            rst     10h
+            ld      hl,ANY_KEY_P    ; Display the wait message
+            call    PRINT_R4
 
             call    KEY_WAIT        ; Wait for a key press
 
@@ -158,32 +140,14 @@ INTRO:      ld      hl,INTRO_1_M    ; Display the intro message
             ld      c,13
             rst     10h
 
-            ld      a,LCD_2         ; Move cursor to LCD line 2
-            ld      b,a
-            ld      c,15
-            rst     10h
-
             ld      hl,INTRO_5_M
-            ld      c,13
-            rst     10h
-
-            ld      a,LCD_3         ; Move cursor to LCD line 3
-            ld      b,a
-            ld      c,15
-            rst     10h
+            call    PRINT_R2
 
             ld      hl,INTRO_6_M
-            ld      c,13
-            rst     10h
-
-            ld      a,LCD_4         ; Move cursor to LCD line 4...
-            ld      b,a
-            ld      c,15
-            rst     10h
+            call    PRINT_R3
 
             ld      hl,ANY_KEY_P    ; ...and display the wait message
-            ld      c,13
-            rst     10h
+            call    PRINT_R4
 
             call    KEY_WAIT        ; Wait for a key press
 
@@ -217,11 +181,6 @@ LANDED:     ld      hl,0            ; Set the height to the moons surface
 
             call    STATS           ; Update the stats on the LCD
 
-            ld      a,LCD_4         ; Move cursor to the beginning of LCD line 4...
-            ld      b,a             ; ...in readiness for the landing message
-            ld      c,15
-            rst     10h
-
             ld      a,(VEL)         ; If we have 0 velocity we have nailed it!
             cp      0
             jr      z,GOOD
@@ -231,18 +190,17 @@ LANDED:     ld      hl,0            ; Set the height to the moons surface
             jr      nz,BUMPY
 
             ld      hl,CRASH_M      ; Otherwise we have had a rapid unscheduled disassembly
-            ld      c,13
-            rst     10h
+            call    PRINT_R4
+
             jr      END
 
 BUMPY:      ld      hl,BUMPY_M      ; A bumpy landing
-            ld      c,13
-            rst     10h
+            call    PRINT_R4
+
             jr      END
 
 GOOD:       ld      hl,GOOD_M       ; Nailed it!
-            ld      c,13
-            rst     10h
+            call    PRINT_R4
 
 END:        call    SCAN_7_SEG      ; Leave the landing message on the LCD. Wait for a key press
 
@@ -405,18 +363,12 @@ DUMP:       ld      hl,BURN         ; ** DEBUG ** Dump variables
 ; Destroys:
 ;   A, BC, HL
 ;---------------------------------------------------------------------
-GET_THRTL:  ld      a,LCD_4         ; Move cursor to the beginning of LCD line 4
-            ld      b,a
-            ld      c,15
-            rst     10h
-
-            ld      hl,THRTL_P      ; Display the prompt for the throttle %
-            ld      c,13
-            rst     10h
+GET_THRTL:  ld      hl,THRTL_P      ; Display the prompt for the throttle %
+            call    PRINT_R4
 
             ld      a,(THRTL)
             ld      l,a
-            call    L_TO_ASC
+            call    L_TO_LCD
 
             ld      a,LCD_4 + 17    ; Move cursor to data entry on LCD line 4
             ld      b,a
@@ -462,7 +414,7 @@ GT_4:       push    bc
             add     a,b
             ld      (THRTL),a
             ld      l,a
-            call    L_TO_ASC
+            call    L_TO_LCD
 
             ld      hl,KEY_DELAY    ; Add short delay to debounce key press
             ld      c,33
@@ -781,22 +733,14 @@ STATS:      call    CLEAR_LCD       ; Clear the LCD
 
             ld      a,(TIME)
             ld      l,a
-            call    L_TO_ASC
-
-            ld      a,LCD_2         ; Move cursor to the beginning of LCD line 2
-            ld      b,a
-            ld      c,15
-            rst     10h
+            call    L_TO_LCD
 
             ld      hl,VEL_T        ; Display the current velocity
-            ld      c,13
-            rst     10h
+            call    PRINT_R2
 
-            ld      a,LCD_2 + 12    ; Move cursor to direction pos. on LCD line 2
-            ld      b,a
-            ld      c,15
-            rst     10h
-
+            ld      b,2             ; Set LCD row and column for velocity dir
+            ld      c,12
+            
             ld      hl,(VEL1)
             bit     7,h             ; Check for negative velocity
             jr      z,STATS_2
@@ -806,16 +750,14 @@ STATS:      call    CLEAR_LCD       ; Clear the LCD
             ld      (TEMP_D),hl
 
             ld      hl,UP_T         ; Display the velocity direction
-            ld      c,13
-            rst     10h
+            call    PRINT_AT
 
             jr      STATS_3
 
 STATS_2:    ld      (TEMP_D),hl
 
             ld      hl,DOWN_T       ; Display the velocity direction
-            ld      c,13
-            rst     10h
+            call    PRINT_AT
 
 STATS_3:    ld      a,LCD_2 + 7     ; Move cursor to velocity pos. on LCD line 2
             ld      b,a
@@ -825,18 +767,12 @@ STATS_3:    ld      a,LCD_2 + 7     ; Move cursor to velocity pos. on LCD line 2
             ld      hl,(TEMP_D)
             call    HL_TO_LCD
 
-            ld      a,LCD_4         ; Move cursor to the beginning of LCD line 4
-            ld      b,a
-            ld      c,15
-            rst     10h
-
             ld      hl,THRTL_T      ; Display the prompt for the burn rate
-            ld      c,13
-            rst     10h
-
+            call    PRINT_R4
+            
             ld      a,(THRTL)
             ld      l,a
-            call    L_TO_ASC
+            call    L_TO_LCD
 
             ret
 

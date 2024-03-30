@@ -6,3 +6,4 @@
 *.bak
 Software/Utils/lcd.hex
 Software/Utils/rtc-test-messages.hex
+Software/Games/lcd.hex
