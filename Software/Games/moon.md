@@ -18,18 +18,21 @@ Try to have your throttle position just above the lunar surface at such a point 
   - serial.asm - Serial routines
   - moon.hex - Binary ready for downloading the the TEC-1G for those that don't want to compile the code.
 
-The program has been tested with TASM 3.2 using the command line 
+The program has been compiled with TASM 3.2 using the command line 
 `tasm -80 -g0 moon.asm moon.hex`
 
-Near the top of moon.asm, there are 2 #defines. SERIAL_OUT_EN enables the stats to be sent out the serial port. You can capture a game this way. DUMP_EN is for debugging and is rarely, if ever, used.
-
+Near the top of moon.asm, there are 3 #defines.
+  - DUMP_EN is for debugging and is rarely, if ever, used.
+  - SERIAL_OUT_EN enables the stats to be sent out the serial port. You can capture a game this way.
+  - EX_RAM_EN changes the memory locations for compilation for use with the expanded RAM.
+  
 The main starting parameters are listed as constants that can be adjusted to change the games initial state.
 
 ## To Do ##
   - Display 'how to play' instructions. (Done)
   - Add 'Abort' and 'Replay'. (Done)
-  - Add sound effects.
-  - Add fuel level bar graph
+  - Add sound effects. (Done)
+  - Add fuel level bar graph.
   - Add bar graphs on the LCD for height and velocity.
   - Graphical shenanigans on the graphical LCD.
 
