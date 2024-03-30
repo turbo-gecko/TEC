@@ -71,6 +71,17 @@ ZERO_T      .db     "00000",0
 S_TIME_T    .db     "Time ",0
 #endif
 
+BUMPY_S     .db     06h,03h,06h,03h,06h,03h,06h,03h,06h,03h,06h,03h,06h,03h,06h,03h
+            .db     06h,03h,06h,03h,06h,03h,06h,03h,06h,03h,06h,03h,06h,03h,1fh
+
+CRASH_S     .db     03h,03h,00h,03h,03h,00h,03h,00h,03h,03h,00h,06h,06h,00h,05h,00h
+            .db     05h,00h,00h,03h,00h,03h,03h,00h,02h,00h,03h,03h,03h,00h,1fh
+
+INTRO_S     .db     03h,0ch,08h,0ch,01h,03h,05h,06h,08h,0ah,0ch,01h,0ah,08h,06h,05h,03h,1fh
+
+SUCCESS_S   .db     02h,08h,06h,0ah,0dh,12h,12h,12h,0dh,0dh,0dh,0ah,0dh,0ah,06h,00h
+            .db     06h,0ah,0dh,12h,12h,12h,06h,06h,06h,0dh,0dh,0dh,00h,00h,1fh
+            
 BURN        .db     0
 FUEL        .dw     300
 HEIGHT      .dw     500
@@ -87,6 +98,7 @@ TEMP_7_SEG  .db     "000000",0
 TIMER_1     .dw     0
 
 EOV         .db     0ffh
+
 ;---------------------------------------------------------------------
 ; Main Program
 ;---------------------------------------------------------------------
@@ -128,6 +140,10 @@ INTRO:      ld      hl,INTRO_1_M    ; Display the intro messages
 
             ld      hl,INTRO_3_M
             call    PRINT_R3
+
+            ld      de,INTRO_S
+            ld      c,35
+            rst     10h
 
             ld      hl,ANY_KEY_P    ; Display the wait message
             call    PRINT_R4
@@ -192,15 +208,27 @@ LANDED:     ld      hl,0            ; Set the height to the moons surface
             ld      hl,CRASH_M      ; Otherwise we have had a rapid unscheduled disassembly
             call    PRINT_R4
 
+            ld      de,CRASH_S
+            ld      c,35
+            rst     10h
+
             jr      END
 
 BUMPY:      ld      hl,BUMPY_M      ; A bumpy landing
             call    PRINT_R4
 
+            ld      de,BUMPY_S
+            ld      c,35
+            rst     10h
+
             jr      END
 
 GOOD:       ld      hl,GOOD_M       ; Nailed it!
             call    PRINT_R4
+            
+            ld      de,SUCCESS_S
+            ld      c,35
+            rst     10h
 
 END:        call    SCAN_7_SEG      ; Leave the landing message on the LCD. Wait for a key press
 
