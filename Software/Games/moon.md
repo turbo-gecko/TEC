@@ -12,6 +12,8 @@ Your current fuel level and throttle position is indicated on the computers seve
 
 Try to have your throttle position just above the lunar surface at such a point that you settle on the surface with no downward velocity. The lander can sustain landing with a small amount of downward velocity that will result in a bumpy landing. Too much however, and it's 'game over man!'
 
+Adjust the throttle by entering a value between 00 and 99. If after ~6 seconds no new throttle position has been entered, the lander will use the current throttle position. If you don't enter any throttle position once the computer hands manual control over to you, you have about 45 seconds before your lander creates a new crater on the moon!
+
 ## Source files ##
   - moon.asm - Main program
   - lcd.asm - LCD routines
@@ -32,7 +34,7 @@ The main starting parameters are listed as constants that can be adjusted to cha
   - Display 'how to play' instructions. (Done)
   - Add 'Abort' and 'Replay'. (Done)
   - Add sound effects. (Done)
-  - Add fuel level bar graph.
+  - Add throttle entry timeout bar graph. (Done)
   - Add bar graphs on the LCD for height and velocity.
   - Graphical shenanigans on the graphical LCD.
 
