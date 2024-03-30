@@ -55,6 +55,3 @@ Checks the update and output of the formatTime call #16 to check that the AM/PM 
 ### Test 3 - 24 hour mode test
 Checks the update and output of the formatTime call #16 to check that there is no AM/PM text and correctly displays the time by setting the time of the RTC to various edge case times.
 
-### Test 99 - 12 hour mode test with hack!
-Checks the update and output of the formatTime call #16 to check that the AM/PM is correctly displayed by setting the time of the RTC to various edge case times.
-
