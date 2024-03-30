@@ -55,6 +55,3 @@ T3_MSG_2    .db     "* Setting the time to 00:00:01",0
 T3_MSG_3    .db     "* Setting the time to 11:59:59",0
 T3_MSG_4    .db     "* Setting the time to 12:00:00",0
 T3_MSG_5    .db     "* Setting the time to 23:59:59",0
-
-T99_NAME    .db     "12 hour mode check (Hack to get it to work)",0
-T99_DESC    .db     "Checks the 12 hour mode for different times",0
