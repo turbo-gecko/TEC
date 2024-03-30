@@ -93,7 +93,7 @@ VEL         .dw     50
 VEL1        .dw     0
 V_AVG       .dw     0
 
-BAR_GRAPH   .db     0ffh
+BAR_GRAPH   .db     0
 
 TEMP_D      .dw     0
 TEMP_W      .db     "00000",0
@@ -134,6 +134,10 @@ START:      call    CLEAR_LCD       ; Clear the LCD
             ld      (VEL),hl
             ld      (VEL1),hl
             ld      (V_AVG),hl
+            
+            ld      a,0ffh
+            ld      (BAR_GRAPH),a
+            out     (LED_PORT),a
 
 INTRO:      ld      hl,INTRO_1_M    ; Display the intro messages
             ld      c,13
