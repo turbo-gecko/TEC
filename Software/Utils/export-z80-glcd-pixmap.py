@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# A GIMP plugin to save the image in GLIB pixmap format
+# A GIMP plugin to save the image in z80 asm pixmap format
 # The image must be "INDEXED" type (Image -> Mode -> Indexed... -> 1-bit
 # The plugin creates both c and header files
 
@@ -16,6 +16,11 @@ def export_glib_pixmap(img, layer, path, name):
         src_pixels = array("B", srcRgn[0:width, 0:height])
 
         c_file = open(path + "/" + name + ".asm","w")
+        c_file.write(";--------------------------------------------------------------------------\n")
+        c_file.write("; Auto-generated pixmap file\n")
+        c_file.write("; Change 'BITMAP' to any suitable name for your program.\n")
+        c_file.write(";--------------------------------------------------------------------------\n\n")
+        c_file.write("BITMAP:\n")
 
         bytes = []
         byte = 0
