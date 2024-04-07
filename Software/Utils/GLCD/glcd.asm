@@ -60,7 +60,7 @@ GL_DB_1:
 GL_DB_2:     
             rlc     e               ; Loop through each bit in the bitmapped
             push    de              ; byte and either turn on or off the pixel
-            jr      c,GL_DB_3
+            jr      nc,GL_DB_3
             ld      a,9
             rst     18h
             jr      GL_DB_4

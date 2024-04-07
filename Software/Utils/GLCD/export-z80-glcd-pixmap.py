@@ -30,6 +30,7 @@ def export_glib_pixmap(img, layer, path, name):
             bit_cnt += 1
             if bit_cnt == 8:
                 bit_cnt = 0
+                byte = ~byte & 0xFF
                 bytes.append(int('{:08b}'.format(byte)[::-1], 2))
                 byte = 0
         if bit_cnt != 0:
@@ -42,7 +43,7 @@ def export_glib_pixmap(img, layer, path, name):
                     c_file.write(", ");
                 else:
                     c_file.write("\n            .db  ");
-            c_file.write(str.format('{:03}', bytes[cnt], 16))
+            c_file.write(str.format('0{:0X}h', bytes[cnt], 16))
             
         c_file.write("\n")
         c_file.close()
