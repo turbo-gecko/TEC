@@ -13,9 +13,9 @@ START:
             
             call    GL_DRAW_BM
 
-            ret
+            rst     00h             ; All done!
             
-#include    glcd.asm
+#include    "glcd.asm"
 
 ;---------------------------------------------------------------------
 ; 128x64px Intro bitmap

@@ -52,7 +52,6 @@ GL_DRAW_BM:
             call    GL_CLRGMODE     ; Initialise and clear the GLCD
             ld      hl,(GL_BUFPTR)  ; Get the pointer to the bitmapped image
             ld      bc,0            ; Reset screen origin to 0,0
-            push    hl
 GL_DB_1:     
             ld      e,(hl)
             push    hl
@@ -60,12 +59,12 @@ GL_DB_1:
 GL_DB_2:     
             rlc     e               ; Loop through each bit in the bitmapped
             push    de              ; byte and either turn on or off the pixel
-            jr      nc,GL_DB_3
-            ld      a,9
+            jr      c,GL_DB_3
+            ld      a,19
             rst     18h
             jr      GL_DB_4
 GL_DB_3:     
-            ld      a,19
+            ld      a,9
             rst     18h            
 GL_DB_4:
             inc     b               ; Move to the next pixel
@@ -92,6 +91,7 @@ GL_DB_5:
             ld      a,GL_PLOT       ; Output to the graphics LCD the bitmap
             rst     18h
             ld      c,GL_DELAY      ; Wait for the graphics LCD to complete its update
+            ld      hl,4000h
             rst     10h
 
             ret
