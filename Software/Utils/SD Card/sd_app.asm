@@ -102,7 +102,6 @@ readFile:
 	call sdInit			; Initialise the SD card
 	jp c,noCard			; No card detected
 	
-	;call sdInitUpdate
 	call validateFormat		; SD present and formatted?
 	ret c
 
@@ -207,7 +206,6 @@ writeFile:
 	call sdInit			; Initialise the SD card
 	jp c,noCard			; No card detected
 	
-	;call sdInitUpdate
 	call validateFormat		; SD present and formatted?
 	ret c
 
@@ -377,14 +375,12 @@ writeDone:
 ;		Formats the SD Card with TEC-FS
 ; ----------------------------------------------------------------------------
 formatSD:
-	call 	clearLCD			; Clear the LCD
+	call clearLCD			; Clear the LCD
 	ld hl,FormatMsg
 	call lcdStr
 
-	call 	sdInit			; Initialise the SD card
-	jp	c,noCard		; No card detected
-
-	;call sdInitUpdate
+	call sdInit			; Initialise the SD card
+	jp c,noCard			; No card detected
 
 ; prep MBR
 	ld hl,sdBuff			; zero out buffer
@@ -654,110 +650,6 @@ swInfo:
 ; ============================================================================
 ; App function calls
 ; ============================================================================
-sdInitUpdate:
-	call getCardType	; bail if wrong card type
-	jp c,sdError
-	cp 0c0h
-	ret nz
-
-	call getPNM		; Get the part number string (pointer in HL)
-	jp nz,sdError
-
-	call clearLCD		; Clear the LCD
-	call printR1		; and display the part number
-
-	ld b,LCD_ROW2
-	ld c,_commandToLCD
-	rst 10h
-	ld hl,cardTypeStr
-	call lcdStr
-
-;	ld a,(sdBuff)
-	call getCardType
-;	and 0c0h
-	rlca
-	rlca
-;	inc a
-	dec a
-	call showByte
-	push af
-
-	ld hl,sdhcCardMsg
-	call getCardType
-	cp 80h
-	jr nz,sdSize
-	ld hl,sdscCardMsg
-
-sdSize:	call lcdStr
-	pop af
-	cp 1			; type 2
-	jr z,notType2
-
-; ----- decode type 2
-
-; type 2 not decoding top 6 bits - will get large cards wrong.
-
-	ld a,(sdBuff+8)		; get size bytes
-	ld h,a
-	ld a,(sdBuff+9)
-	ld l,a
-
-	inc hl			; calc is c_size + 1
-	srl h
-	rr l
-
-	ld ix,decimalBuff
-	call decimal
-	xor a			; null terminate result
-	ld (ix),a
-
-	ld b,LCD_ROW3
-	ld c,_commandToLCD
-	rst 10h
-
-	ld hl,decimalBuff
-	call lcdStr
-	ld hl,megaBytes
-	call lcdStr
-	
-	ld c,_scanKeysWait
-	rst 10h
-
-	ret
-	
-notType2:
-	ld hl,sdNoType1Msg
-	call lcdStr
-	
-	ld c,_scanKeysWait
-	rst 10h
-	
-	ret c
-
-; ----------------------------------------------------------------------------
-fnStamp:
-	push bc
-	push de
-
-	ld de,sdBuff+0bh
-	ld b,8
-	
-nfLoop:	ld hl,(byteBuff)
-	ld c,_HLToString
-	rst 10h
-
-	inc hl
-	ld (byteBuff),hl
-
-	ld hl,64-4
-	add hl,de
-	ex de,hl
-
-	djnz nfLoop
-
-	pop de
-	pop bc
-	ret
 
 ; ----------------------------------------------------------------------------
 ; returns
@@ -769,7 +661,6 @@ selectSlot:
 	call 	sdInit			; Initialise the SD card
 	jp	c,noCard		; No card detected
 	
-	;call sdInitUpdate
 	call validateFormat
 	ret c				; bail if bad SD
 
