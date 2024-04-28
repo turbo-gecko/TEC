@@ -18,7 +18,7 @@
 ;
 ; at the end of the data segment of the calling app.
 
-;API_DATA	.equ 1000h	; uncomment if testing file dependencies when
+;API_DATA	.equ 1000h	; Uncomment if testing file dependencies when
 				; building standalone. This is normally left
 				; commented out.
 RESET_CLK_COUNT	.equ 80
@@ -43,37 +43,40 @@ SD_CLK		.equ 1
 ; Destroys:	A, BC, HL
 ; ----------------------------------------------------------------------------
 sdInit:
+	ld a,0			; Clear the CID info flag.
+	ld (sdCIDInit),a
+
 	ld a,SD_INIT_RETRIES	; Number of retries for SD card detection
 	ld (sdInitRetry),a
 	
 sdInitLoop
-	call spiInit		; set SD interface to idle state
+	call spiInit		; Set SD interface to idle state
 
-	ld b,RESET_CLK_COUNT	; toggle clk 80 times
-	ld a,SPI_IDLE		; set CS and MOSI high
+	ld b,RESET_CLK_COUNT	; Toggle clk 80 times
+	ld a,SPI_IDLE		; Set CS and MOSI high
 
 sdReset
 	out (SPI_PORT),a
-	set SD_CLK,a		; set CLK
+	set SD_CLK,a		; Set CLK
 	out (SPI_PORT),a
 	nop
-	res SD_CLK,a		; clear CLK
+	res SD_CLK,a		; Clear CLK
 	out (SPI_PORT),a
 	djnz sdReset
 
-	ld a,SPI_IDLE		; now turn CS off - puts SD card into SPI mode
+	ld a,SPI_IDLE		; Now turn CS off - puts SD card into SPI mode
 	and SPI_CS1
 	out (SPI_PORT),a
 
 	ld hl,spiCMD0
-	call sendSPICommand	; should come back as 01 if card present
+	call sendSPICommand	; Should come back as 01 if card present
 	cp 01h
 	jr z,sdReset2		; SD card detected
-	ld a,(sdInitRetry)	; no SD card detected so load retry counter
+	ld a,(sdInitRetry)	; No SD card detected so load retry counter
 	cp 0			
-	jr z,sdReset1		; no more retries left
+	jr z,sdReset1		; No more retries left
 	dec a
-	ld (sdInitRetry),a	; update the retry counter
+	ld (sdInitRetry),a	; Update the retry counter
 	jr sdInitLoop		; and try again
 	
 sdReset1
@@ -90,10 +93,10 @@ sdReset2
 	ld hl,spiCMD8
 	call sendSPICommand
 	cp 01
-	jr nz,cmd8Done		; skip past if CMD8 not supported (older cards)
+	jr nz,cmd8Done		; Skip past if CMD8 not supported (older cards)
 
 cmd8OK
-	ld b,4			; dump 4 bytes of CMD8 status
+	ld b,4			; Dump 4 bytes of CMD8 status
 
 get5Byte
 	call readSPIByte
@@ -109,13 +112,13 @@ sendCMD55
 	ld hl,spiCMD55
 	call sendSPICommand
 	ld hl,spiACMD41
-	call sendSPICommand	; expect to get 00; init'd. If not, init is in progress
+	call sendSPICommand	; Expect to get 00; init'd. If not, init is in progress
 	cp 0
 	jr z, initDone
-	jr sendCMD55		; try again if not ready. Can take several cycles
+	jr sendCMD55		; Try again if not ready. Can take several 
+				; cycles
 
-; we are initialised!!
-initDone
+initDone			; we are initialised!!
 	ret
 
 ; ----------------------------------------------------------------------------
@@ -126,6 +129,7 @@ initDone
 ; Input:	None.
 ; Output:	HL -- Pointer to null terminated part number string.
 ;		Zero flag set to non-zero value on error.
+;		Carry flag set on error.
 ; Destroys:	A, HL, IX, IY
 ; ----------------------------------------------------------------------------
 getPNM:
@@ -137,25 +141,24 @@ getPNM:
 	pop de			; Restore registers
 	pop bc
 
-	scf			; Set carry flag set.
+	scf			; Set carry flag
 	ret nz			; and non-zero flag on return
 
 getPNM1
 	push hl			; Index to data in the CID buffer
 	pop ix
-	ld hl,sdStrPNM		; Index to the PNM string
-	push hl
-	pop iy
+	ld iy,sdStrPNM		; Index to the PNM string
 	ld b,5			; PNM - Product name length (see SD card Spec)
+
 getPNM2
-	ld a,(ix+3)		; Loop through the 5 bytes of PNM data
+	ld a,(ix+3)		; loop through the 5 bytes of PNM data
 	ld (iy),a		; and copy to the string
 	inc ix
 	inc iy
 	djnz getPNM2
 
 	ld hl,sdStrPNM		; HL points to the Part Number string
-	ld a,0			; Ensure zero flag is set for successful
+	ld a,0			; ensure zero flag is set for successful
 
 	pop de			; Restore registers
 	pop bc
@@ -170,7 +173,7 @@ getPNM2
 ;
 ; Input:	None.
 ; Output:	A -- 80h = SDSC, C0h = SDHC
-;		Carry flag set if no card detected
+;		Carry flag set if no card detected.
 ; Destroys:	A
 ; ----------------------------------------------------------------------------
 getCardType:
@@ -184,7 +187,7 @@ getCardType:
 	pop de
 	pop bc
 
-	scf			; Return with carry flag set on error.
+	scf			; Return with carry flag set on error
 	ret nz			; and return
 
 getCT1
@@ -196,7 +199,7 @@ getCT1
 	pop de
 	pop bc
 
-	scf			; Return with carry flag set on error.
+	scf			; Return with carry flag set on error
 	ret
 	
 checkOCROK
@@ -209,7 +212,7 @@ getR3Response
 	inc hl
 	djnz getR3Response
 
-	ld a,(sdBuff)		; bit 7 = valid, bit 6 = SDHC if 1, SCSC if 0
+	ld a,(sdBuff)		; Bit 7 = valid, bit 6 = SDHC if 1, SCSC if 0
 	and 0c0h
 
 	pop hl			; Restore registers
@@ -220,14 +223,39 @@ getR3Response
 
 ; ----------------------------------------------------------------------------
 ; getMaxFiles#3
-; Check and return whether the card is SDSC or SDHC
+; Check and return the maximum number of files that can be saved to the SD
+; card
 ;
 ; Input:	None.
-; Output:	A -- 80h = SDSC, C0h = SDHC
+; Output:	A -- Maximum nuber if files for the SD card
 ;		Carry flag set if no card detected
 ; Destroys:	A
 ; ----------------------------------------------------------------------------
+getMaxFiles:
+	push bc			; Save registers
+	push de
+	push hl
 
+	call getCID		; Get the SD card hw info
+	jr z,getMF1		; OK, then continue
+	pop hl			; if not, restore registers
+	pop de
+	pop bc
+
+	scf			; Return with carry flag set on error.
+	ret nz			; and return
+
+getMF1
+	ld a,(sdBuff+33)	; # files supported
+	rla
+	rla
+	rla
+
+	pop hl			; Restore registers
+	pop de
+	pop bc
+
+	ret			; and return
 
 ; ============================================================================
 ; Function calls
@@ -237,26 +265,37 @@ getR3Response
 ; Read the cards CID register and return a pointer to it in HL
 ; ----------------------------------------------------------------------------
 getCID:
+	ld a,(sdCIDInit)	; Check to see if we have already got the CID
+				; info
+	xor a
+	jr z,getCID1		; we haven't so go get the CID info
+	
+	ret
+
+getCID1
 	ld hl,spiCMD10
-	call sendSPICommand	; check command worked (=0)
+	call sendSPICommand	; Check command worked (=0)
 	cp 0
 	ret nz
 
-	ld bc,16		; how many bytes of data we need to get
+	ld bc,16		; How many bytes of data we need to get
 	call readSPIBlock
 
 	ld b,15
 	ld de,sdCIDRegister
 	ld hl,sdBuff
 getCID2
-	ld a,(hl)		; copy CID register from buffer to var
+	ld a,(hl)		; Copy CID register from buffer to var
 	ld (de),a 
 	inc de
 	inc hl
 	djnz getCID2
 	
-	ld hl,sdCIDRegister	; return pointer to the CID register in hl
+	ld hl,sdCIDRegister	; Return pointer to the CID register in hl
 	
+	ld a,1			; Record we have got the CID info.
+	ld (sdCIDInit),a
+
 	ret
 
 ; ----------------------------------------------------------------------------
@@ -275,7 +314,7 @@ waitToken
 	cp 0feh			; feh == start token. We discard this.
 	jr nz,waitToken
 
-blockLoopR			; load in all the bytes
+blockLoopR			; Load in all the bytes
 	call spiRdb
 	ld (hl),a
 	inc hl
@@ -293,10 +332,10 @@ blockLoopR			; load in all the bytes
 readSPIByte:
 	push bc
 	push de
-	ld b,32			; wait up to 32 tries, but should need 1-2
+	ld b,32			; Wait up to 32 tries, but should need 1-2
 
 readLoop
-	call spiRdb		; get value in A
+	call spiRdb		; Get value in A
 	cp 0ffh
 	jr nz,result
 	djnz readLoop
@@ -312,17 +351,20 @@ result
 ; returns A = response code
 ; ----------------------------------------------------------------------------
 sendSPICommand:
-;	push bc
-;	push de
+	push bc
+	push de
+	push hl
 	ld b,6
+
 sendSPIByte
 	ld c,(hl)
 	call spiWrb
 	inc hl
 	djnz sendSPIByte
 	call readSPIByte
-;	pop de
-;	pop bc
+	pop hl
+	pop de
+	pop bc
 	ret
 
 ; ----------------------------------------------------------------------------
@@ -355,18 +397,21 @@ lInner	dec de
 cidBufferPtr	.dw			; Pointer to the CID buffer
 
 sdInitRetry	.db 0			; Keeps track of init retry counter
+sdCIDInit	.db 0			; if 0, the CID info of the SD card
+					; has not been retrieved, or a new
+					; retrieval is requested.
 
 ; ---------------------------- SPI commands
-spiCMD0		.db 40h,0,0,0,0,95h	; reset			R1
-spiCMD8		.db 48h,0,0,1,0aah,87h	; send_if_cond		R7
-spiCMD9		.db 49h,0,0,1,0aah,87h	; send_CSD		R1
-spiCMD10	.db 4ah,0,0,0,0,1h	; send_CID		R1
+spiCMD0		.db 40h,0,0,0,0,95h	; Reset			R1
+spiCMD8		.db 48h,0,0,1,0aah,87h	; Send_if_cond		R7
+spiCMD9		.db 49h,0,0,1,0aah,87h	; Send_CSD		R1
+spiCMD10	.db 4ah,0,0,0,0,1h	; Send_CID		R1
 spiCMD16	.db 50h,0,0,2,0,1h	; Set sector size	R1
-spiCMD17	.db 51h,0,0,0,0,1h	; read single block	R1
-spiCMD24	.db 58h,0,0,0,0,1h	; write single block	R1
+spiCMD17	.db 51h,0,0,0,0,1h	; Read single block	R1
+spiCMD24	.db 58h,0,0,0,0,1h	; Write single block	R1
 spiCMD55	.db 77h,0,0,0,0,1h	; APP_CMD		R1
 spiCMD58	.db 7ah,0,0,0,0,1h	; READ_OCR		R3
-spiACMD41	.db 69h,40h,0,0,0,1h	; send_OP_COND		R1
+spiACMD41	.db 69h,40h,0,0,0,1h	; Send_OP_COND		R1
 
 sdBuff		.block 512+2		; 512b + CRC16
 
@@ -383,6 +428,6 @@ sdcidPSN	.block 4		; Product serial number
 sdcidMDT	.block 2		; Manufacturing date
 sdcidCRC	.block 1		; CRC7
 
-sdApiEod				; End of the data block
+SP_API_EOD				; End of the data block
 
 	.end

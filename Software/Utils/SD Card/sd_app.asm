@@ -13,16 +13,15 @@
 ; ----------------------------------------------------------------------------
 #include "sd_data.asm"
 
-	.org 04000h	; Start of code in RAM
+	.org 04000h		; Start of code in RAM
 
 	call spiInit
 
 	ld c,_menuDriver
 	ld hl,mainMenuCfg
 	rst 10h
-	ret			; to MON3 if exit....
 
-SD_CODE	.equ $
+	ret			; To MON3 if exit....
 
 ; ----------------------------------------------------------------------------
 ; INCLUDE libraries
@@ -48,39 +47,40 @@ sdCardInfo:
 	call validateFormat
 	ret c
 
-	call getPNM		; show card name
+	ld hl,cidPNMMsg		; Show card name message
 	call printR1
 
-	ld hl,cardCapacity	; show maximum files message
+	call getPNM		; Show card name
+	ld b,1			; Set up row/colum position
+	ld c,6
+	call printAt
+
+	ld hl,cardCapacity	; Show maximum files message
 	call printR2
 
-	ld a,(sdBuff+33)	; # files supported
-	rla
-	rla
-	rla
+	call getMaxFiles	; Get the maximum number of files that
+				; will fit on the SD card.
 	ld l,a
 	ld h,0
 	ld ix,decimalBuff
 	call decimal
-	xor a			; null terminate result
+	xor a			; Null terminate result
 	ld (ix),a	
-	ld hl,decimalBuff
+	ld hl,decimalBuff	; Display the max files
 	call lcdStr
 
-	ld hl,formatDateMsg
+	ld hl,formatDateMsg	; Display date the card was formatted
 	call printR3
 
-	ld b,LCD_ROW4		; row 4
+	ld b,LCD_ROW4		; Row 4
 	ld c,_commandToLCD
 	rst 10h
 
-	ld iy,sdBuff+FCB_RTC	; output format timestamp
+	ld iy,sdBuff+FCB_RTC	; Output formatted timestamp
 	call showTimeStamp
 
 	ld c,_scanKeysWait
 	rst 10h
-
-	call sdInitUpdate
 
 	ret
 
@@ -102,7 +102,7 @@ readFile:
 	call sdInit			; Initialise the SD card
 	jp c,noCard			; No card detected
 	
-	call sdInitUpdate
+	;call sdInitUpdate
 	call validateFormat		; SD present and formatted?
 	ret c
 
@@ -116,7 +116,7 @@ readFile:
 	ld (fcbOffset),a
 	call calcOffset			; sets up IY register
 
-	ld l,(iy+FCB_START_ADDR)		; TEC start in memory, FFFF = no file
+	ld l,(iy+FCB_START_ADDR)	; TEC start in memory, FFFF = no file
 	ld h,(iy+FCB_START_ADDR+1)	; TEC start in memory, FFFF = no file
 
 	ld de,0ffffh			; 16-bit CP
@@ -207,7 +207,7 @@ writeFile:
 	call sdInit			; Initialise the SD card
 	jp c,noCard			; No card detected
 	
-	call sdInitUpdate
+	;call sdInitUpdate
 	call validateFormat		; SD present and formatted?
 	ret c
 
@@ -384,7 +384,7 @@ formatSD:
 	call 	sdInit			; Initialise the SD card
 	jp	c,noCard		; No card detected
 
-	call sdInitUpdate
+	;call sdInitUpdate
 
 ; prep MBR
 	ld hl,sdBuff			; zero out buffer
@@ -666,17 +666,6 @@ sdInitUpdate:
 	call clearLCD		; Clear the LCD
 	call printR1		; and display the part number
 
-; now get CSD data
-;	ld hl,spiCMD9
-;	call sendSPICommand
-;	cp 0
-;	jp nz,sdError
-;
-;	ld bc,16		; how many bytes of data we need to get
-;	call readSPIBlock
-;	call spiInit
-
-; --- type 1 or 2?
 	ld b,LCD_ROW2
 	ld c,_commandToLCD
 	rst 10h
@@ -780,7 +769,7 @@ selectSlot:
 	call 	sdInit			; Initialise the SD card
 	jp	c,noCard		; No card detected
 	
-	call sdInitUpdate
+	;call sdInitUpdate
 	call validateFormat
 	ret c				; bail if bad SD
 
